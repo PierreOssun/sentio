@@ -1,5 +1,5 @@
 import { GlobalContext, GlobalProcessor } from '@sentio/sdk/eth'
-import { Counter, Gauge } from '@sentio/sdk'
+import { Gauge } from '@sentio/sdk'
 import { network, startBlock } from './utils.js'
 
 
@@ -11,8 +11,8 @@ const gasUsedCounter = Gauge.register('gas_used', {
   description: 'Total gas used per block'
 })
 
-const gasLimitCounter = Gauge.register('gas_limit', {
-  description: 'Gas limit per block'
+const baseFeeCounter = Gauge.register('base_fee', {
+  description: 'Base fee per block'
 })
 
 const blockUtilizationHandler = async function(_: any, ctx: GlobalContext) {
@@ -20,13 +20,14 @@ const blockUtilizationHandler = async function(_: any, ctx: GlobalContext) {
     const blockNumber = ctx.block.number
     const gasLimit = BigInt(ctx.block.gasLimit)
     const gasUsed = BigInt(ctx.block.gasUsed)
+    const baseFee = BigInt(ctx.block.baseFeePerGas ?? 0)
     
     const utilizationPercentage = Number((gasUsed * 100n) / gasLimit)
     console.log(`Block ${blockNumber}: Gas utilization = ${utilizationPercentage.toFixed(2)}% (${gasUsed}/${gasLimit})`)
     
     blockUtilizationGauge.record(ctx, utilizationPercentage)
     gasUsedCounter.record(ctx, Number(gasUsed))
-    gasLimitCounter.record(ctx, Number(gasLimit))
+    baseFeeCounter.record(ctx, Number(baseFee))
   }
 }
 
